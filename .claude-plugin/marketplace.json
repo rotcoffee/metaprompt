@@ -1,0 +1,15 @@
+{
+  "name": "metaprompt",
+  "owner": { "name": "rotcoffee", "url": "https://github.com/rotcoffee" },
+  "metadata": {
+    "description": "metaprompt 플러그인 배포용 마켓플레이스",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "metaprompt",
+      "source": "./",
+      "description": "메타프롬프트 생성기 — 티어(lite/standard/max) · 체크포인트 확인 · 제품/연구/시스템 도메인 · greenfield/worktree 모드"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+name: self-test
+on:
+  push:
+  pull_request:
+jobs:
+  self-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 skills/metaprompt/scripts/check_prompt.py --self-test
+      - run: python3 skills/metaprompt/scripts/check_prompt.py examples/*.md
+      - run: python3 -c "import json; json.load(open('.claude-plugin/plugin.json')); json.load(open('.claude-plugin/marketplace.json'))"

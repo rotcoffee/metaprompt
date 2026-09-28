@@ -1,0 +1,5 @@
+prompts/
+verdicts/
+__pycache__/
+*.pyc
+.DS_Store

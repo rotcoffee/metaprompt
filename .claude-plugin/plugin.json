@@ -1,0 +1,10 @@
+{
+  "name": "metaprompt",
+  "version": "0.1.0",
+  "description": "주제 한 줄로 서브에이전트·루프 실행용 메타프롬프트 파일을 만든다. 티어(lite/standard/max)로 품질과 토큰 사용량을 맞바꾸고, 결정 지점마다 사용자에게 확인한다. 제품·연구·시스템 도메인과 greenfield/worktree 모드. oneshot-prompt 의 철학을 잇는 재구성.",
+  "author": { "name": "rotcoffee" },
+  "homepage": "https://github.com/rotcoffee/metaprompt",
+  "repository": "https://github.com/rotcoffee/metaprompt",
+  "license": "MIT",
+  "keywords": ["prompt", "metaprompt", "loop", "multi-agent", "verification", "tier", "oneshot"]
+}
