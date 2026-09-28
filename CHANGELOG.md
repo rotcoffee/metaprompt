@@ -2,6 +2,17 @@
 
 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/) · [유의적 버전](https://semver.org/lang/ko/)
 
+## [0.2.0] - 2026-09-28
+
+### 추가
+
+- **검증 도구 점검 (체크포인트 1½)** — 도메인의 필수 검증 도구(헤드리스 브라우저, GPU 드라이버 + torch, 부하 생성기, 테스트 런타임)가 환경에 없으면 설치 여부를 묻는다.
+  사용자 공간 설치(pip·npx·바이너리)는 확인 후 스킬이 실행하고 재확인, 시스템 수준(드라이버·apt·docker)은 커맨드를 보여주고 사용자가 실행. GPU 가 없으면 CPU 축소가 첫 옵션
+- `references/tools.md` — 도메인 × 신호 → 필수 도구 · 확인 · 설치 · 대체 표. 빠진 도구가 있을 때만 로드
+- 생성 프롬프트에 **`## 사전조건 (검증 도구)`** 절 — 실행 세션이 라운드 0 에서 확인하고, 없으면 설치하거나 멈추고 요청. 도구 없이 채점하지 않는다
+- `detect_env.py` 가 GPU(`nvidia-smi -L`), 파이썬 패키지(torch·transformers·playwright·pytest 등, import 없이 존재만), Playwright 브라우저 캐시, OS·패키지 관리자를 보고한다
+- `check_prompt.py` 에 사전조건 절 검사 추가 (23항목)
+
 ## [0.1.0] - 2026-09-28
 
 oneshot-prompt 0.2.0 을 재구성한 첫 공개판.
@@ -22,4 +33,5 @@ oneshot-prompt 0.2.0 을 재구성한 첫 공개판.
 
 기준점 고정, 리서치 사실 ≥3, 팬아웃/순차 분리와 이유, 생성자/검증자 분리, 증거 획득 커맨드, Yes/No 체크리스트, 숫자 종료 조건, 정체 감지, 수용된 제약, worktree 회귀 통·금지 목록·병합 게이트.
 
+[0.2.0]: https://github.com/rotcoffee/metaprompt/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/rotcoffee/metaprompt/releases/tag/v0.1.0

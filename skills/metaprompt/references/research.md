@@ -43,6 +43,8 @@ SKILL.md 의 `{{ }}` 네 칸을 이 파일로 채운다.
 
 ## 3. 검증 증거 — 직접 돌려서 재현하고 반증을 시도한다
 
+**필수 도구**: python3 · pytest · numpy. 주제에 **ML 신호**(학습·미세조정·LLM·임베딩·GPU·CUDA·torch·transformers·딥러닝)가 있으면 GPU(`gpu.count ≥ 1`) + torch 도 필수 — 없으면 `references/tools.md` 의 ML 행으로 체크포인트 1½ 를 연다. CPU 축소가 기본 대체이며, 그때는 표본 수·epoch·체크리스트 수치를 같이 줄인다.
+
 ````
 검증자는 보고된 숫자를 믿지 마라. **직접 실행해서 재현한 값만 근거로 인정한다.**
 

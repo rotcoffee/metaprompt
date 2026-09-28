@@ -49,12 +49,16 @@ ln -s ~/metaprompt/skills/metaprompt ~/.claude/skills/metaprompt
 
 ```
 0 파싱 · 환경 자동 수집  →  1 체크포인트: 도메인·티어·진행 방식 (+ 상황별 1문항)
-→ 2 리서치 (서브에이전트)  →  3 체크포인트: 기준점 선택
+→ 1½ 검증 도구가 없으면 설치 여부 확인 (있으면 생략)  →  2 리서치 (서브에이전트)  →  3 체크포인트: 기준점 선택
 → 4 체크리스트·종료 조건 초안 + 상충 점검  →  체크포인트: 승인/수정
 → 5 조립  →  6 자가점검 → 저장 → 모드별 실행 안내
 ```
 
 첫 체크포인트에서 "이후는 추천값으로 자동" 을 고르면 나머지를 건너뛴다. `--yes` 는 처음부터 전부 건너뛴다.
+
+검증 도구가 없으면 묻는다. ML 주제인데 GPU 드라이버가 없으면 "CPU 로 범위 축소 / 드라이버 설치 커맨드 보기 / GPU 머신에서 실행 — 사전조건으로만" 중 고르고,
+웹 UI 주제인데 헤드리스 브라우저가 없으면 Playwright chromium 설치를 제안한다. 사용자 공간 설치는 확인 후 스킬이 하고, sudo 가 필요한 것은 커맨드만 보여준다.
+생성된 프롬프트에도 `## 사전조건 (검증 도구)` 절이 들어가 실행 세션이 라운드 0 에서 다시 확인한다.
 
 ## 티어 — 품질과 토큰의 교환
 
@@ -88,7 +92,8 @@ ln -s ~/metaprompt/skills/metaprompt ~/.claude/skills/metaprompt
 | 품질↔토큰 | 단일 | lite / standard / max |
 | 실행 시 컨텍스트 | 규약 없음 | 30줄 보고 · 판정문 파일화 · 실패 항목만 전달 |
 | 재생성 | 처음부터 | `--from` 으로 리서치 재사용 |
-| 자가점검 | 12항목 | 22항목 + 티어·도메인별 |
+| 자가점검 | 12항목 | 23항목 + 티어·도메인별 |
+| 검증 도구 | 없으면 검증자가 상상으로 채점 | 생성 전에 점검해 설치를 묻고, 프롬프트에 사전조건 절 |
 
 ## 구조
 
@@ -101,10 +106,11 @@ skills/metaprompt/
   references/research.md
   references/system.md
   references/worktree.md base commit · 회귀 통 · 금지 목록 · 병합 게이트 — worktree 모드에서만
-  scripts/detect_env.py  모드·저장소 사실·테스트 커맨드·브라우저·런타임 부재 → JSON. 항상 exit 0
+  references/tools.md    도메인 × 신호 → 필수 검증 도구 · 확인 · 설치 · 대체 — 빠진 도구가 있을 때만
+  scripts/detect_env.py  모드·저장소 사실·테스트 커맨드·브라우저·GPU·파이썬 패키지·런타임 부재 → JSON. 항상 exit 0
   scripts/check_prompt.py 생성물 자가점검 + --self-test
   fixtures/              티어×모드×도메인 표본 3종. self-test 가 검사한다
-examples/                실제 생성된 프롬프트 3종 (스킬이 로드하지 않는다)
+examples/                실제 생성된 프롬프트 4종 (스킬이 로드하지 않는다). lite-search-tools 는 도구 부재 경로의 산출물
 ```
 
 도메인 레퍼런스가 채우는 네 칸:

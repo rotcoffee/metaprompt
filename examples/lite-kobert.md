@@ -28,6 +28,16 @@ Python 3.11 · GPU 없으면 CPU 로 (KoBERT 는 n=10,000 에서 3 epoch 이내)
 - 라운드마다 커밋한다 (`round N: <한 줄 요약>`). 커밋이 없으면 중간 상태 복원도, 개선 전후 비교도 못 한다.
 - 검증 증거 범위: 재현 1회(결정성 확인 생략) · 누수 점검 · 반증 1개(다른 시드)
 
+## 사전조건 (검증 도구)
+
+라운드 0 에서 아래를 확인한다. 없으면 사용자 공간 설치는 직접 하고, 시스템 수준이면 **멈추고 사용자에게 설치를 요청**한다. 도구 없이 상상으로 채점하지 마라.
+
+| 도구 | 확인 | 없을 때 |
+|---|---|---|
+| GPU (선택 — 없으면 CPU 로 n ≤ 2,000 · 1 epoch 로 축소하고 그 사실을 report.md 에 적는다) | `nvidia-smi -L` | CPU 축소 |
+| torch · transformers · scikit-learn | `python3 -c "import torch, transformers, sklearn"` | `pip install torch transformers scikit-learn` (CUDA 휠 약 2GB, CPU 휠은 약 200MB) |
+| pytest · numpy | `python3 -c "import pytest, numpy"` | `pip install pytest numpy` |
+
 ## 순차로 진행할 것 (쪼개지 마)
 
 아래 전부를 빌더 하나가 순서대로 처리한다. 병렬화하지 마라 — 이 티어는 이음매를 다시 붙일 예산이 없다.

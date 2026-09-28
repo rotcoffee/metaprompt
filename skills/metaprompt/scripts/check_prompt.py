@@ -55,6 +55,8 @@ COMMON = [
      "기준점 상세에 `-`/`*` 불릿이 3개 미만이다 (번호 목록은 세지 않는다). lite 라도 (출처 미확인) 표시를 달고 3개는 넣는다."),
     ("실행 예산 섹션", lambda s, t, m, d: _has(s, r"^#{1,3}\s*실행 예산"),
      "실행 예산 섹션이 없다. 티어가 프롬프트에 박혀 있지 않으면 받는 모델이 자기 기준으로 팬아웃한다."),
+    ("사전조건 섹션", lambda s, t, m, d: _has(s, r"^#{1,3}\s*사전조건") and re.search(r"^\|", _section(s, "사전조건"), re.M) is not None,
+     "사전조건(검증 도구) 섹션이나 그 표가 없다. 실행 세션이 도구 없이 상상으로 채점하게 된다."),
     ("보고 30줄 규약", lambda s, t, m, d: _has(s, r"30줄"),
      "서브에이전트 보고를 30줄로 제한하는 문장이 없다. 부모 컨텍스트가 라운드마다 부푼다."),
     ("판정문 파일 규약", lambda s, t, m, d: _has(s, r"verdicts/round"),
@@ -148,8 +150,8 @@ def check_prompt(path, tier=None, mode=None):
 
 
 REQUIRED = ["SKILL.md", "references/template.md", "references/product.md", "references/research.md",
-            "references/system.md", "references/worktree.md", "scripts/detect_env.py"]
-TEMPLATE_HEADINGS = ["# 목표", "## 기준점 상세", "## 작업 격리", "## 실행 예산", "## 병렬로 진행할 것",
+            "references/system.md", "references/worktree.md", "references/tools.md", "scripts/detect_env.py"]
+TEMPLATE_HEADINGS = ["# 목표", "## 기준점 상세", "## 작업 격리", "## 실행 예산", "## 사전조건", "## 병렬로 진행할 것",
                      "## 순차로 진행할 것", "## 검증", "## 종료 조건", "## 완료 후"]
 
 

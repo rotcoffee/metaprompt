@@ -124,7 +124,32 @@ def main():
     browsers = ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "firefox"]
     out["browser"] = next((shutil.which(b) for b in browsers if shutil.which(b)), None)
     out["tools"] = {t: bool(shutil.which(t)) for t in
-                    ["node", "python3", "docker", "k6", "wrk", "hey", "ab", "hyperfine", "uv"]}
+                    ["node", "npx", "python3", "uv", "pip", "docker", "k6", "wrk", "hey", "ab", "hyperfine",
+                     "locust", "nvidia-smi", "nvcc", "xvfb-run", "cargo", "go", "make"]}
+
+    # 파이썬 패키지 — import 하지 않고 존재만 본다 (torch import 는 수 초 걸린다)
+    try:
+        import importlib.util as iu
+        out["python_packages"] = {m: iu.find_spec(m) is not None for m in
+                                  ["torch", "transformers", "playwright", "pytest", "sklearn", "numpy", "locust"]}
+    except Exception:
+        out["python_packages"] = {}
+
+    # Playwright 브라우저 바이너리 (python·node 공통 캐시)
+    pw_cache = os.path.expanduser("~/.cache/ms-playwright")
+    out["playwright_browsers"] = sorted(os.listdir(pw_cache)) if os.path.isdir(pw_cache) else []
+
+    # GPU
+    gpu = {"nvidia_smi": bool(shutil.which("nvidia-smi")), "count": 0, "names": []}
+    if gpu["nvidia_smi"]:
+        names = [l.split(":", 1)[1].split("(")[0].strip() for l in sh("nvidia-smi -L").splitlines() if l.startswith("GPU")]
+        gpu["count"], gpu["names"] = len(names), names[:4]
+    out["gpu"] = gpu
+
+    # 시스템 정보 — 설치 커맨드 선택용
+    out["os"] = {"platform": sh("uname -s") or "unknown", "arch": sh("uname -m"),
+                 "distro": sh(". /etc/os-release 2>/dev/null && echo $ID"), "sudo": bool(shutil.which("sudo")),
+                 "brew": bool(shutil.which("brew")), "apt": bool(shutil.which("apt-get"))}
     out["today"] = sh("date +%F")
     print(json.dumps(out, ensure_ascii=False, indent=1))
 

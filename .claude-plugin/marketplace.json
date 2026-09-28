@@ -3,7 +3,7 @@
   "owner": { "name": "rotcoffee", "url": "https://github.com/rotcoffee" },
   "metadata": {
     "description": "metaprompt 플러그인 배포용 마켓플레이스",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "plugins": [
     {

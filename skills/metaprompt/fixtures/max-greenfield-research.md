@@ -28,6 +28,16 @@ Python 3.11, GPU 1장 이하, 공개 데이터셋만. 결과는 `report.md` 와 
 - 모델: 코어 빌드와 검증자는 세션 기본 모델. 리서치·문서·보조 팬아웃은 sonnet 급으로 충분하다.
 - 검증 증거 범위: 재현 2회 결정성 · 누수 점검 · 기준선 공정성 · 반증 3개 이상 · 3시드 신뢰구간 · 비용 표
 
+## 사전조건 (검증 도구)
+
+라운드 0 에서 아래를 확인한다. 없으면 사용자 공간 설치는 직접 하고, 시스템 수준이면 **멈추고 사용자에게 설치를 요청**한다. 도구 없이 상상으로 채점하지 마라.
+
+| 도구 | 확인 | 없을 때 |
+|---|---|---|
+| GPU 1장 (데이터셋당 재랭킹 30분 예산의 전제) | `nvidia-smi -L` | 시스템 수준 — 멈추고 요청. max 티어는 CPU 축소를 허용하지 않는다 |
+| torch · transformers · pytrec_eval | `python3 -c "import torch, transformers, pytrec_eval"` | `pip install torch transformers pytrec_eval` (CUDA 휠 약 2GB) |
+| pytest · numpy | `python3 -c "import pytest, numpy"` | `pip install pytest numpy` |
+
 ## 병렬로 진행할 것 (서브에이전트 팬아웃)
 
 아래 항목은 서로 독립적이다. 각각 별도 서브에이전트에 배분해서 동시에 진행해.
