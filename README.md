@@ -1,11 +1,105 @@
 # metaprompt
 
-**주제 한 줄 → 서브에이전트·루프로 실행할 프롬프트 파일 하나.** Claude Code 플러그인.
+**주제 한 줄 → 다른 세션에서 실행할 프롬프트 파일 하나** (또는 "만들 필요 없음" 한 줄). — Claude Code 플러그인.
 
-[oneshot-prompt](https://github.com/chanp5660/oneshot-prompt) 의 철학(기준점 고정 · 리서치 선행 · 팬아웃/순차 분리 · 생성자/검증자 분리 · Yes/No 체크리스트 · 숫자 종료 조건)을 그대로 잇되,
-**티어로 품질과 토큰 사용량을 맞바꾸고**, **결정 지점마다 사용자에게 확인**하고, 리서치와 환경 조사를 서브에이전트·스크립트에 위임해 컨텍스트를 아끼도록 재구성했다.
+```mermaid
+---
+config:
+  flowchart:
+    nodeSpacing: 12
+    rankSpacing: 28
+    wrappingWidth: 400
+---
+flowchart LR
+  T["주제 한 줄"] --> R["자동 라우팅"]
+  R -->|skip| S["채팅으로 돌려보냄 · 파일 없음"]
+  R -->|precise| P["빨강 테스트 → 종료 코드 · /goal"]
+  R -->|creative| C["기준점 + 앞서기 항목 · 검증자"]
+  P --> F["프롬프트 파일"]
+  C --> F
+  F --> N["새 세션에서 실행"]
+```
 
-프로그램을 만들지 않고, 만든 프롬프트를 실행하지도 않는다. 산출물은 다른 세션에 붙여 넣을 텍스트 파일까지다.
+### ✅ 쓸 때 — 크고 채점할 수 있는 작업
+- 새 화면·앱·도구를 만든다 → **creative** 프롬프트
+- 원인 모를 버그 · 마이그레이션 · 성능 목표 → **precise** 프롬프트
+
+### ❌ 쓰지 않을 때 — 그냥 채팅으로 시킨다
+- 오타 · 설정값 하나 같은 **한 줄 수정**, **질문**, **코드 리뷰** → 스킬이 파일 없이 돌려보낸다
+
+가장 가벼운 실행 = 주제 뒤에 `--tier lite` (플러그인 설치 시 이름은 `/metaprompt:metaprompt`):
+
+```
+/metaprompt calendar UI, single HTML file --tier lite
+```
+
+## 채팅 vs lite 실측
+
+같은 주제 "업무용 캘린더 UI, 단일 HTML 파일" · opus · `--effort medium` · 같은 권한 플래그 · 빈 디렉터리. 채점은 두 결과물을 만든 적 없는 제3 에이전트가 같은 렌더·주입 절차로 ([grade.md](bench/chat-vs-lite/grade.md)).
+
+| 측정 (원자료 `bench/chat-vs-lite/`) | 채팅 | lite (생성+실행) |
+|---|---|---|
+| 체크리스트 통과 (제3 채점자) | 0/5 | 5/5 |
+| 비용 `total_cost_usd` | $1.07 | $2.56 |
+| 시간 `duration_ms` | 3분 48초 | 8분 54초 |
+| 출력 토큰 `modelUsage` | 27,628 | 56,793 |
+| 입력 토큰 (캐시 포함) | 496,017 | 1,340,956 |
+| 서브에이전트 | 0 | 1 |
+
+- lite 가 **비용 2.4배 · 시간 2.3배**를 더 썼다. 그 값으로 산 것은 기준점 대비 "앞서기" 항목과 새 컨텍스트 검증자 1회다.
+- 체크리스트는 lite 프롬프트의 것이라 채팅 쪽에 불리하다. 채팅 결과물도 주 보기·키보드 생성·일 보기를 **다른 방식으로** 부분 달성했다 (grade.md).
+- 표본 1건이다. 작은 과업에서 구조화가 늘 이긴다는 근거가 아니다 — 그래서 한 줄짜리 주제는 skip 으로 돌려보낸다.
+
+## 경로 3개 — 무엇이 켜지고 꺼지나
+
+플래그 없이 판정한다. 두 경로 신호가 팽팽하면 가벼운 쪽(skip < precise < creative). `--route` 로 고정, `--route-only` 는 판정 한 줄만.
+
+| | skip | precise | creative |
+|---|---|---|---|
+| 파일 | 없음 — 채팅 지시 한 줄 | 있음 | 있음 |
+| 기준점 | — | base commit · 명세 조항 | 실명 제품·방법 + 수치 |
+| 생성 시 리서치 | — | 0 (저장소 사실만) | 티어 R 만큼 리서처 |
+| 먼저 박는 것 | — | 실패하는 회귀 테스트 → 잠금 | `앞서기:` 항목 (기준점에 없는 것) |
+| 채점 | — | 종료 코드 + `/goal` 평가자, 검증자는 마지막 1회 | 새 컨텍스트 검증자 매 라운드 (+ standard+ 블라인드 심사자) |
+| 종료 | — | 커맨드 종료 코드 0 | 전 항목 Yes (+ 블라인드 점수) |
+| 루프 | — | `/goal` | 내부 라운드 |
+
+도메인(product · research · system)은 경로가 아니라 **증거 방법**이다 — 렌더 · 재현/반증 · 계측.
+
+## 티어 — 크기와 토큰
+
+신호가 없으면 lite. "공개·팀·배포" → standard, "출시·경쟁 제품 옆·논문·SOTA" → max. `--tier` 로 고정.
+
+| 키 (lite/standard/max) | 값 |
+|---|---|
+| 라운드 상한 | M 2/3/5 |
+| 동시 팬아웃 | K 0/3/5 |
+| 정체 판정 연속 라운드 | S 2/2/3 |
+| 체크리스트 항목 | C 4-5 / 6-7 / 7-8 |
+| 생성 시 리서치 에이전트 (creative) | R 0/1/3 |
+| 체크포인트 | Q 1/2/2 |
+
+티어가 깎는 것은 깊이다. 기준점 · 채점자 분리 · Yes/No 체크리스트 · 정체 감지 · 수용된 제약은 lite 에도 남는다.
+
+## 역할별 모델·effort
+
+- Agent 도구에는 effort 파라미터가 없다 → effort 는 에이전트 정의 frontmatter 로만 준다.
+- 세션 도중 만든 정의는 그 세션에 로드되지 않는다 → 생성된 프롬프트의 역할 표를 `scripts/agents.py` 가 **세션 시작 전에** `.claude/agents/mp-*.md` 로 만든다.
+- 스킬 자신의 리서처·스카우트는 플러그인 `agents/` 에 있다.
+- 모델은 ID 가 아니라 별칭(opus · sonnet · haiku)으로만 적는다 — 별칭 해석은 제공자마다 다르다.
+
+값의 **유일한 출처**는 [`references/contract.md`](skills/metaprompt/references/contract.md) 다. 여기엔 표를 옮기지 않는다.
+
+```bash
+python3 <skill_dir>/scripts/agents.py prompts/metaprompt-<슬러그>.md   # 역할 정의 — 세션 시작 전에
+claude --effort <메인 effort>
+```
+
+## 기능 스위치 — 프롬프트마다 값과 이유 한 줄
+
+- **agent teams** — 대화형 · standard+ · 서로 반박해야 하는 독립 흐름 ≥3 일 때만 ON. 약 7배 토큰이라 그 외 OFF.
+- **Workflow** — 사람이 `ultracode` 를 치고 독립 증거 실행 ≥5 일 때만 ON. 코어 빌드는 제외.
+- **루프** — 우선순위대로: 검증 실행 한 번이 ≥15분 → `/loop`(간격 ≥20분) · 종료가 종료 코드 → `/goal` · 그 외 내부 라운드.
 
 ## 설치
 
@@ -14,128 +108,33 @@
 /plugin install metaprompt@metaprompt
 ```
 
-플러그인 시스템 없이 개인 스킬로 쓰려면 클론 후 심링크 하나면 된다.
+플러그인 시스템 없이 개인 스킬로:
 
 ```bash
 git clone https://github.com/rotcoffee/metaprompt ~/metaprompt
 ln -s ~/metaprompt/skills/metaprompt ~/.claude/skills/metaprompt
 ```
 
-설치 확인:
-
-```
-/metaprompt --check
-```
-
-의존성: Python 3 (표준 라이브러리만) · `${CLAUDE_SKILL_DIR}` 치환을 지원하는 최근 Claude Code. 스크린샷 검증을 쓰는 제품 도메인은 실행 환경에 Chrome 이 있으면 좋다.
-
-플러그인으로 설치했다면 같은 이름의 개인 스킬(`~/.claude/skills/metaprompt`)은 지운다. 둘 다 있으면 트리거가 겹친다.
+확인: `/metaprompt --check`. 플러그인으로 설치했다면 같은 이름의 개인 스킬(`~/.claude/skills/metaprompt`)은 지운다 — 트리거가 겹친다.
 
 ## 사용
 
-```
-/metaprompt <주제> [--tier lite|standard|max] [--profile product|research|system]
-                   [--mode greenfield|worktree] [--yes] [--from <이전 프롬프트>]
-                   [--benchmark <기준점>] [--rounds N] [--out <경로>]
-```
-
-```
-/metaprompt 업무용 캘린더 UI, 단일 HTML                 # 체크포인트 3회를 거쳐 standard 로
-/metaprompt api/search p99 개선 --tier lite --yes         # 질문 없이 가볍게
-/metaprompt --from prompts/metaprompt-calendar.md --tier max   # 리서치 재사용해 티어 승격
-```
-
-기본 흐름:
-
-```
-0 파싱 · 환경 자동 수집  →  1 체크포인트: 도메인·티어·진행 방식 (+ 상황별 1문항)
-→ 1½ 검증 도구가 없으면 설치 여부 확인 (있으면 생략)  →  2 리서치 (서브에이전트)  →  3 체크포인트: 기준점 선택
-→ 4 체크리스트·종료 조건 초안 + 상충 점검  →  체크포인트: 승인/수정
-→ 5 조립  →  6 자가점검 → 저장 → 모드별 실행 안내
-```
-
-첫 체크포인트에서 "이후는 추천값으로 자동" 을 고르면 나머지를 건너뛴다. `--yes` 는 처음부터 전부 건너뛴다.
-
-검증 도구가 없으면 묻는다. ML 주제인데 GPU 드라이버가 없으면 "CPU 로 범위 축소 / 드라이버 설치 커맨드 보기 / GPU 머신에서 실행 — 사전조건으로만" 중 고르고,
-웹 UI 주제인데 헤드리스 브라우저가 없으면 Playwright chromium 설치를 제안한다. 사용자 공간 설치는 확인 후 스킬이 하고, sudo 가 필요한 것은 커맨드만 보여준다.
-생성된 프롬프트에도 `## 사전조건 (검증 도구)` 절이 들어가 실행 세션이 라운드 0 에서 다시 확인한다.
-
-## 티어 — 품질과 토큰의 교환
-
-| | lite | standard (기본) | max |
-|---|---|---|---|
-| 생성 시 리서치 | 서브에이전트 0, 검색 ≤1 | 서브에이전트 1 (sonnet) | 3 병렬 |
-| 체크포인트 | 2회 | 3회 | 3회 |
-| 프롬프트 예산 | 팬아웃 0 · 2라운드 · 체크리스트 4~5 | 팬아웃 ≤3 · 3라운드 · 6~7 | 팬아웃 ≤5 · 5라운드 · 7~8 + 블라인드 비교 |
-| 실행 방법 | `claude` 새 세션에 붙여넣기 | `/loop` + 붙여넣기 | `/loop ultracode` + 붙여넣기 |
-| 실행 비용 (추정) | ~1/10 | ~1/3 | oneshot 실측과 같음 |
-| 언제 | 내부용 초안 | 남에게 보여줄 것 | 경쟁 제품 옆에 놓일 것, 논문 재현 |
-
-실행 비용은 oneshot 의 실측(단일 HTML UI, 5라운드, 서브에이전트 19개, 약 7시간)을 1 로 둔 상대 추정치다.
-어느 티어에서도 기준점 고정, 검증자 분리, Yes/No 체크리스트, 정체 감지, 수용된 제약은 빼지 않는다 — 티어가 깎는 것은 깊이지 구조가 아니다.
-
-생성 단계 실측 (2026-09-28, `--yes`, 서브에이전트 기준):
-
-| 경우 | 토큰 | 시간 |
-|---|---|---|
-| lite · greenfield · product | 약 91K | 8분 |
-| standard · worktree · system | 약 111K + 리서치·조사 에이전트 2개 | 13분 |
-
-## oneshot 과 무엇이 다른가
-
-| | oneshot 0.2.0 | metaprompt |
-|---|---|---|
-| 스킬 로드 | 라우터 + core.md + 변형 ≈ 35KB 매번 | SKILL.md ≈ 13KB + 도메인 레퍼런스 **하나** + 조립 때 template (worktree 면 +1) |
-| 리서치 | 메인 컨텍스트에서 직접 검색 | 서브에이전트가 검색, **40줄 압축 사실**만 반환 |
-| 환경 조사 | git 커맨드 6개 + 설정 파일 읽기 | `detect_env.py` 한 번 → JSON, 스킬 로드 시 자동 |
-| 사용자 확인 | 최대 2문항, 즉시 진행 | 체크포인트 3회, `--yes` 로 끄기 |
-| 품질↔토큰 | 단일 | lite / standard / max |
-| 실행 시 컨텍스트 | 규약 없음 | 30줄 보고 · 판정문 파일화 · 실패 항목만 전달 |
-| 재생성 | 처음부터 | `--from` 으로 리서치 재사용 |
-| 자가점검 | 12항목 | 23항목 + 티어·도메인별 |
-| 검증 도구 | 없으면 검증자가 상상으로 채점 | 생성 전에 점검해 설치를 묻고, 프롬프트에 사전조건 절 |
-
-## 구조
-
-```
-.claude-plugin/          플러그인·마켓플레이스 매니페스트
-skills/metaprompt/
-  SKILL.md               절차·티어·체크포인트 (약 190줄). 이것만 매번 로드된다
-  references/template.md 조립 틀 — [[lite]] [[standard+]] [[max]] [[worktree]] [[greenfield]] 조건 블록
-  references/product.md  도메인 네 칸: 기준점 종류 · 체크리스트 원형 · 증거 획득(티어별) · 종료 지표 (+ 팬아웃/순차 · worktree 델타)
-  references/research.md
-  references/system.md
-  references/worktree.md base commit · 회귀 통 · 금지 목록 · 병합 게이트 — worktree 모드에서만
-  references/tools.md    도메인 × 신호 → 필수 검증 도구 · 확인 · 설치 · 대체 — 빠진 도구가 있을 때만
-  scripts/detect_env.py  모드·저장소 사실·테스트 커맨드·브라우저·GPU·파이썬 패키지·런타임 부재 → JSON. 항상 exit 0
-  scripts/check_prompt.py 생성물 자가점검 + --self-test
-  fixtures/              티어×모드×도메인 표본 3종. self-test 가 검사한다
-examples/                실제 생성된 프롬프트 4종 (스킬이 로드하지 않는다). lite-search-tools 는 도구 부재 경로의 산출물
-```
-
-도메인 레퍼런스가 채우는 네 칸:
-
-| 칸 | product | research | system |
-|---|---|---|---|
-| 기준점 | 실명 제품 | 보고 수치 + 조건 | 현행 실측치 + SLO |
-| 체크리스트 원형 | 지각 속성 수치 | 방법론 게이트 | 깨지면 안 되는 불변식 |
-| 검증 증거 | 렌더링 후 픽셀 판정 | 직접 재현 + 반증 | 부하·장애 주입 계측 |
-| 종료 지표 | 전 항목 Yes (+ 블라인드 점수) | 유의미 개선 **또는 기각** | 목표 수치 + 회귀 0건 |
+`/metaprompt <주제> [--tier lite|standard|max] [--route creative|precise] [--route-only] [--profile product|research|system] [--mode greenfield|worktree] [--yes] [--from <이전 프롬프트>] [--out <경로>]`
 
 ## 개발
 
 ```bash
-python3 skills/metaprompt/scripts/check_prompt.py --self-test      # 구조·픽스처 회귀
-python3 skills/metaprompt/scripts/check_prompt.py prompts/*.md     # 생성물 검사
+python3 skills/metaprompt/scripts/check_prompt.py --self-test   # 구조·픽스처·음성 케이스
+python3 skills/metaprompt/scripts/check_prompt.py --repo .      # 버전 3곳 · README 수치 · 실측 원자료 대조
+python3 skills/metaprompt/scripts/check_prompt.py prompts/*.md  # 생성물 검사
 ```
 
-티어 수치(라운드 2/3/5, 팬아웃 0/3/5, 정체 2/2/3)는 `SKILL.md` 티어 표, `template.md`, `check_prompt.py` 세 곳이 같아야 한다.
-규칙을 바꾸면 픽스처가 먼저 깨진다. 그것이 정상이다.
+티어 수치·역할·스위치는 `contract.md` 한 곳에만 둔다 — 검사기가 그 표를 파싱한다.
 
-## 이 도구가 맞지 않는 경우
+## 맞지 않는 경우
 
-- 요구사항이 이미 확정된 경우 · 정답이 하나인 작업(버그 수정·마이그레이션) · 탐색 단계 · 채점할 방법이 없는 산출물
-- lite 라도 30분은 든다. 5분짜리 확인에는 쓰지 않는다
+- 한 문장으로 설명되는 수정 · 단순 질의응답 · 코드 리뷰 · 탐색 — 스킬이 skip 으로 돌려보낸다
+- 채점할 방법이 없는 산출물
 
 ## 출처
 

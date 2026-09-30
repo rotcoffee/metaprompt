@@ -1,0 +1,12 @@
+{"id":"r01","topic":"팀 스프린트 회고를 Retrium·EasyRetro 보다 재밌고 빠르게 진행하게 해주는 웹앱 기획하고 만들어줘","expected":"creative","boundary":false,"why":"새 제품 기획이며 기존 유사 제품과의 비교로 품질이 판정되는 열린 과제다."}
+{"id":"r02","topic":"터미널에서 git 히스토리를 탐색하는 새로운 TUI 도구를 tig·lazygit 과 다르게 설계해줘","expected":"creative","boundary":false,"why":"새 CLI 도구이고 정답이 여러 개이며 기존 도구보다 나아가야 한다."}
+{"id":"r03","topic":"사내 문서 RAG 에서 BM25 + bge-reranker 조합보다 나은 새 리랭킹 방식을 제안하고 실험으로 보여줘","expected":"creative","boundary":true,"why":"'X 가 Y 보다 낫다' 증명형이지만 정답 수치가 없고 기존 방법과의 비교로 판정되는 새 방법 과제라 creative."}
+{"id":"r04","topic":"우리 API 문서 사이트 구조와 탐색 방식을 Stripe Docs 수준 이상으로 개선하는 기획안","expected":"creative","boundary":true,"why":"문서 도메인이지만 결과물이 기존 제품(Stripe Docs)과의 비교로 판정되는 기획이라 creative."}
+{"id":"r05","topic":"결제·주문·재고 서비스 세 곳에 걸쳐 간헐적으로 중복 결제가 나는데 원인을 모르겠음, 재현 테스트부터 만들어 고쳐줘","expected":"precise","boundary":true,"why":"여러 모듈에 걸친 원인 불명 버그로 재현·테스트 통과로 판정되므로 skip 이 아니라 precise."}
+{"id":"r06","topic":"Django 3.2 프로젝트를 4.2 로 마이그레이션하고 기존 테스트 전체 통과시켜줘","expected":"precise","boundary":false,"why":"마이그레이션이며 기존 테스트 통과라는 실행 가능한 체크로 판정된다."}
+{"id":"r07","topic":"API 게이트웨이 p99 지연을 800ms 에서 200ms 이하로 낮춰줘, 부하 테스트 스크립트로 확인","expected":"precise","boundary":true,"why":"개선 과제처럼 보이나 수치 목표와 벤치로 판정되므로 creative 가 아니라 precise."}
+{"id":"r08","topic":"ResNet-18 논문에서 보고한 CIFAR-10 정확도 94.1% 를 우리 코드로 재현해줘","expected":"precise","boundary":false,"why":"보고된 수치 재현이며 학습 실행 결과로 판정된다."}
+{"id":"r09","topic":"README 의 'recieve' 오타를 'receive' 로 고쳐줘","expected":"skip","boundary":false,"why":"한 문장으로 diff 를 설명할 수 있는 오타 수정이다."}
+{"id":"r10","topic":"로그인 버튼 색을 #2563eb 로 바꿔줘","expected":"skip","boundary":true,"why":"UI 변경이지만 값 하나를 바꾸는 작은 수정이라 creative 가 아니라 skip."}
+{"id":"r11","topic":"utils.py 의 parse_date 가 None 을 받으면 42번째 줄 strip() 에서 터지는 버그, 가드 하나 추가해줘","expected":"skip","boundary":true,"why":"버그 수정이지만 원인이 알려져 있고 한 줄 diff 라 precise 가 아니라 skip."}
+{"id":"r12","topic":"이 레포의 인증 흐름이 토큰 갱신까지 어떻게 동작하는지 설명해줘","expected":"skip","boundary":false,"why":"코드 이해를 위한 질문·설명이라 프롬프트 파일이 필요 없다."}
