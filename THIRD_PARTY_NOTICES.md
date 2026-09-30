@@ -5,7 +5,7 @@
 - `skills/metaprompt/scripts/check_prompt.py` — 검사 항목의 뼈대와 다수 판정 규칙
 - `skills/metaprompt/references/template.md` — 프롬프트 템플릿의 문장 다수 (worktree 격리·회귀 통·병합 게이트 블록 포함)
 - `skills/metaprompt/references/{product,research,system}.md` — 도메인별 기준점·체크리스트 원형·증거 획득 지시문
-- `skills/metaprompt/fixtures/standard-worktree-system.md` — worktree 픽스처
+- `skills/metaprompt/fixtures/standard-precise-worktree-system.md` — worktree 픽스처
 
 원본 라이선스 전문:
 

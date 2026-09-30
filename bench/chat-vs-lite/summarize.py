@@ -56,7 +56,7 @@ def main():
         rows[key] = cells
         sides.append({"name": key, "label": label, "raw": files, "cost_usd": round(t["cost_usd"], 6),
                       "duration_ms": t["duration_ms"], "input_tokens": t["input_tokens"], "output_tokens": t["output_tokens"],
-                      "turns": t["turns"], "subagents": t["subagents"], "models": t["models"], "checklist": score.get(key),
+                      "turns": t["turns"], "subagents": t["subagents"], "checklist": score.get(key),
                       "readme_cells": [cells["out"], cells["cost"], cells["time"]] + ([cells["score"]] if key in score else [])})
     json.dump({"sides": sides}, io.open(os.path.join(D, "summary.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     if len(rows) == 2:

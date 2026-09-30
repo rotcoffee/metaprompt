@@ -1,0 +1,45 @@
+{
+ "sides": [
+  {
+   "name": "chat",
+   "label": "채팅",
+   "raw": [
+    "chat.json"
+   ],
+   "cost_usd": 1.067127,
+   "duration_ms": 227958,
+   "input_tokens": 496017,
+   "output_tokens": 27628,
+   "turns": 12,
+   "subagents": 0,
+   "checklist": "0/5",
+   "readme_cells": [
+    "27,628",
+    "$1.07",
+    "3분 48초",
+    "0/5"
+   ]
+  },
+  {
+   "name": "lite",
+   "label": "lite (생성+실행)",
+   "raw": [
+    "lite-gen.json",
+    "lite-run.json"
+   ],
+   "cost_usd": 2.55725,
+   "duration_ms": 534138,
+   "input_tokens": 1340956,
+   "output_tokens": 56793,
+   "turns": 16,
+   "subagents": 1,
+   "checklist": "5/5",
+   "readme_cells": [
+    "56,793",
+    "$2.56",
+    "8분 54초",
+    "5/5"
+   ]
+  }
+ ]
+}
