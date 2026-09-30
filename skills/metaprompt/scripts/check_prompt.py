@@ -21,6 +21,7 @@ sys.path.insert(0, HERE)
 from agents import parse_roles, role_errors  # noqa: E402
 
 TIERS = ("lite", "standard", "max")
+MODEL_ID = r"\bclaude-(opus|sonnet|haiku|fable|instant)\b|\bclaude-\d+-\d+"  # claude-opus-5-5 · claude-3-5-… (경로의 claude-1000 은 아님)
 MARKERS = r"(creative|precise|lite|standard\+|max|worktree|greenfield)"
 BASE_LITE_BYTES = 35121  # 0.2.0 의 lite·product·greenfield 경로 (SKILL.md 18,236 + product.md 8,169 + template.md 8,716)
 LITE_PATH = ["SKILL.md", "references/contract.md", "references/creative.md", "references/product.md", "references/template.md"]
@@ -53,9 +54,22 @@ def _has(s, *pats):
     return any(re.search(p, s, re.M | re.S) for p in pats)
 
 
+def _unfenced(s):
+    """코드 펜스 안의 줄 머리 `#` 을 가린다 — 증거 블록의 bash 주석을 절 제목으로 읽지 않게."""
+    out, fence = [], None
+    for line in s.split("\n"):
+        f = re.match(r"^\s*(`{3,}|~{3,})", line)
+        if f and (fence is None or f.group(1)[0] == fence[0] and len(f.group(1)) >= len(fence)):
+            fence = None if fence else f.group(1)
+        elif fence and line.lstrip().startswith("#"):
+            line = line.replace("#", "\u2317", 1)
+        out.append(line)
+    return "\n".join(out)
+
+
 def _section(s, heading):
-    m = re.search(r"^#{1,3}\s*%s[^\n]*\n(.*?)(?=^#{1,3}\s|\Z)" % heading, s, re.M | re.S)
-    return m.group(1) if m else ""
+    m = re.search(r"^#{1,3}\s*%s[^\n]*\n(.*?)(?=^#{1,3}\s|\Z)" % heading, _unfenced(s), re.M | re.S)
+    return m.group(1).replace("\u2317", "#") if m else ""
 
 
 def _meta(s):
@@ -119,7 +133,7 @@ COMMON = [
      "역할 표의 mp-* 행이 contract.md 의 model·effort 와 다르다. 값은 contract 에서만 가져온다."),
     ("effort 지정 방법", lambda s, t, m, d, r: _has(s, r"frontmatter") and _has(s, r"agents\.py|\.claude/agents"),
      "effort 를 에이전트 정의 frontmatter 로 준다는 방법(agents.py·.claude/agents)이 없다. Agent 호출에는 effort 가 없다."),
-    ("모델 ID 하드코딩 없음", lambda s, t, m, d, r: not re.search(r"\bclaude-(opus|sonnet|haiku|fable|instant|\d)", s),
+    ("모델 ID 하드코딩 없음", lambda s, t, m, d, r: not re.search(MODEL_ID, s),
      "`claude-…` 모델 ID 가 있다. 별칭 해석은 제공자마다 다르다 — 역할과 별칭으로 적는다."),
     ("스위치 agent teams", lambda s, t, m, d, r: (_switch(s, "agent teams") or "") in ("ON", "OFF"),
      "`- agent teams **ON|OFF** — 이유` 줄이 없다."),
@@ -265,6 +279,8 @@ NEGATIVE = [
     ("lite-precise", "리서처 역할 추가", lambda s: s.replace("| mp-verifier | opus | high |", "| 리서처 | researcher | sonnet | low | 기준점 조사 |\n  | 검증자 | mp-verifier | opus | high |", 1), "리서치 서브에이전트 0"),
     ("lite-precise", "/goal 줄 삭제", lambda s: re.sub(r"(?m)^.*`/goal .*\n", "", s), "/goal 줄"),
     ("standard-precise", "팬아웃에 리서치", lambda s: s.replace("## 병렬로 진행할 것 (서브에이전트 팬아웃)\n", "## 병렬로 진행할 것 (서브에이전트 팬아웃)\n\n- 외부 리서치: 유사 사례 조사\n", 1), "리서치 서브에이전트 0"),
+    ("lite-creative", "구 형식 모델 ID", lambda s: s.replace("| mp-verifier | opus |", "| mp-verifier | claude-3-5-sonnet |"), "모델 ID 하드코딩 없음"),
+    ("lite-creative", "펜스 속 # 주석 뒤 앞서기 삭제", lambda s: re.sub(r"(?m)^- \[ \] 앞서기.*\n", "", s.replace("```\n검증자는", "```\n# 캡처\n검증자는", 1)), "앞서기 항목"),
     ("standard-precise", "팬아웃 K 초과", lambda s: re.sub(r"최대 \*\*\d+개\*\*", "최대 **9개**", s), "팬아웃 ≤ contract K"),
 ]
 
@@ -323,7 +339,7 @@ def self_test():
     ok &= _line(not tiers_dup, "티어 수치 표가 contract 밖에 없다 %s" % [os.path.relpath(p, SKILL) for p in tiers_dup])
     roles_dup = [p for p in skill_files if not p.endswith("contract.md") and re.search(r"\|\s*mp-verifier\s*\|\s*opus", _read(p))]
     ok &= _line(not roles_dup, "역할→모델 표가 contract 밖에 없다 %s" % [os.path.relpath(p, SKILL) for p in roles_dup])
-    ids = [os.path.relpath(p, SKILL) for p in skill_files if re.search(r"\bclaude-(opus|sonnet|haiku|fable|\d)", _read(p))]
+    ids = [os.path.relpath(p, SKILL) for p in skill_files if re.search(MODEL_ID, _read(p))]
     ok &= _line(not ids, "스킬 파일에 모델 ID 하드코딩 0건 %s" % ids)
     plug = os.path.join(os.path.dirname(os.path.dirname(SKILL)), "agents")
     for fn in ("researcher.md", "scout.md"):
