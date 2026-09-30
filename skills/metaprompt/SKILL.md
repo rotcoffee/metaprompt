@@ -21,7 +21,7 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/detect_env.py --skill-dir ${CLAUDE_SKILL_DIR
 ```
 
 위 JSON 의 `skill_dir` 을 아래에서 `<skill_dir>` 로 쓴다. JSON 이 아니면 그 커맨드를 직접 실행한다. `--mode` 가 오면 `mode` 를 덮어쓴다.
-**`--check` 만 왔으면**: JSON 을 보여주고 `python3 <skill_dir>/scripts/check_prompt.py --self-test` 의 마지막 줄을 붙여 한 줄로 보고하고 끝낸다.
+**`--check` 만 왔으면**: JSON 을 보여주고 `python3 <skill_dir>/scripts/check_prompt.py --self-test` 의 마지막 줄과 `skill_version` 을 한 줄로 보고하고 끝낸다.
 
 ## 0. 경로 판정 — 다른 파일을 읽기 전에
 

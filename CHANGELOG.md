@@ -2,6 +2,12 @@
 
 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/) · [유의적 버전](https://semver.org/lang/ko/)
 
+## [Unreleased]
+
+### 추가
+
+- `detect_env.py` 에 `skill_version` 키 (플러그인 루트의 `plugin.json`) — `/metaprompt --check` 가 스킬 버전을 함께 보고한다
+
 ## [0.3.0] - 2026-09-30
 
 ### 추가

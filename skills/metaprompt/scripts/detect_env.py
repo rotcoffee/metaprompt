@@ -37,6 +37,12 @@ def main():
         out["skill_dir"] = os.path.realpath(d) if d else ""
     else:
         out["skill_dir"] = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    # 스킬 버전 — 플러그인 루트(<skill_dir>/../..)의 plugin.json. 스킬 디렉터리만 복사해 쓰면 None
+    try:
+        manifest = os.path.join(out["skill_dir"], "..", "..", ".claude-plugin", "plugin.json")
+        out["skill_version"] = json.loads(read(manifest)).get("version")
+    except Exception:
+        out["skill_version"] = None
     root = sh("git rev-parse --show-toplevel 2>/dev/null")
     out["mode"] = "worktree" if root else "greenfield"
 
