@@ -1,6 +1,6 @@
 # metaprompt
 
-**주제 한 줄 → 다른 세션에서 실행할 프롬프트 파일 하나** (또는 "만들 필요 없음" 한 줄). Claude Code 플러그인. 만든 프롬프트를 실행하지는 않는다.
+**주제 한 줄 → 다른 세션에서 실행할 프롬프트 파일 하나** (또는 "만들 필요 없음" 한 줄). — Claude Code 플러그인.
 
 ```mermaid
 ---
@@ -20,16 +20,17 @@ flowchart LR
   F --> N["새 세션에서 실행"]
 ```
 
-| 이런 주제면 | 결과 |
-|---|---|
-| 새 화면·도구·API·방법을 만든다 ("○○보다 나은") | **쓴다** → creative 프롬프트 |
-| 원인 모를 버그 · 마이그레이션 · 수치 목표 · 재현 | **쓴다** → precise 프롬프트 |
-| 오타·설정값처럼 한 줄로 끝나는 수정 · 질문 · 코드 리뷰 · 탐색 | **쓰지 않는다** → 파일 없이 "채팅으로 바로 하라"는 한 줄 |
+### ✅ 쓸 때 — 크고 채점할 수 있는 작업
+- 새 화면·앱·도구를 만든다 → **creative** 프롬프트
+- 원인 모를 버그 · 마이그레이션 · 성능 목표 → **precise** 프롬프트
 
-가장 가벼운 실행 (플러그인 설치 시 이름은 `/metaprompt:metaprompt`):
+### ❌ 쓰지 않을 때 — 그냥 채팅으로 시킨다
+- 오타 · 설정값 하나 같은 **한 줄 수정**, **질문**, **코드 리뷰** → 스킬이 파일 없이 돌려보낸다
+
+가장 가벼운 실행 = 주제 뒤에 `--tier lite` (플러그인 설치 시 이름은 `/metaprompt:metaprompt`):
 
 ```
-/metaprompt 업무용 캘린더 UI, 단일 HTML --tier lite
+/metaprompt calendar UI, single HTML file --tier lite
 ```
 
 ## 채팅 vs lite 실측
@@ -118,12 +119,7 @@ ln -s ~/metaprompt/skills/metaprompt ~/.claude/skills/metaprompt
 
 ## 사용
 
-```
-/metaprompt <주제> [--tier lite|standard|max] [--route creative|precise] [--route-only]
-                   [--profile product|research|system] [--mode greenfield|worktree]
-                   [--yes] [--from <이전 프롬프트>] [--benchmark <기준점>] [--rounds N] [--out <경로>]
-```
-
+`/metaprompt <주제> [--tier lite|standard|max] [--route creative|precise] [--route-only] [--profile product|research|system] [--mode greenfield|worktree] [--yes] [--from <이전 프롬프트>] [--out <경로>]`
 
 ## 개발
 
