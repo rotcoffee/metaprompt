@@ -150,6 +150,29 @@ def main():
     out["os"] = {"platform": sh("uname -s") or "unknown", "arch": sh("uname -m"),
                  "distro": sh(". /etc/os-release 2>/dev/null && echo $ID"), "sudo": bool(shutil.which("sudo")),
                  "brew": bool(shutil.which("brew")), "apt": bool(shutil.which("apt-get"))}
+    # Claude Code — 버전 · 실행 방식 · 기능 플래그 · effort. 스위치(agent teams·Workflow·루프) 판정에 쓴다
+    ver = re.search(r"\d+\.\d+\.\d+", sh("claude --version 2>/dev/null"))
+    env = os.environ
+    entry = env.get("CLAUDE_CODE_ENTRYPOINT", "")
+    out["claude"] = {
+        "version": ver.group(0) if ver else None,
+        "entrypoint": entry or None,
+        "interactive": entry == "cli" and env.get("CLAUDE_CODE_SESSION_ATTENDED", "1") != "0",
+        "features": {
+            "agent_teams": env.get("CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS") == "1",
+            "workflows_disabled": env.get("CLAUDE_CODE_DISABLE_WORKFLOWS") == "1",
+            "goal_checkin_minutes": env.get("CLAUDE_CODE_GOAL_CHECKIN_MINUTES"),
+        },
+    }
+    settings = {}
+    try:
+        settings = json.loads(read(os.path.expanduser("~/.claude/settings.json")) or "{}")
+    except Exception:
+        pass
+    out["effort"] = {"session": env.get("CLAUDE_EFFORT") or settings.get("effortLevel"),
+                     "settings": settings.get("effortLevel"), "model": settings.get("model")}
+    agents_dir = os.path.join(cwd, ".claude", "agents")
+    out["project_agents"] = sorted(f[:-3] for f in os.listdir(agents_dir) if f.endswith(".md")) if os.path.isdir(agents_dir) else []
     out["today"] = sh("date +%F")
     print(json.dumps(out, ensure_ascii=False, indent=1))
 
