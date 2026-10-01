@@ -1,7 +1,7 @@
 ---
 name: metaprompt
-description: "주제 한 줄 → 다른 세션에서 실행할 프롬프트 파일. 작업 성격을 플래그 없이 라우팅한다 — 생성 불필요(한 문장 diff·질문)는 파일 없이 돌려보내고, 정밀(버그·마이그레이션·수치 목표)은 먼저 실패하는 회귀 테스트와 종료 코드로, 창의(UI·도구·새 방법)는 실명 기준점을 넘는 앞서기 항목으로 만든다. 역할별 모델·effort 와 agent teams·Workflow·루프 스위치를 이유와 함께 박는다. 티어(lite/standard/max)로 토큰과 품질을 맞바꾼다."
-when_to_use: "트리거: 메타프롬프트, metaprompt, 프롬프트 만들어줘, 실행용 프롬프트, 루프 프롬프트, 원샷 프롬프트. 쓰지 않음: 한 문장으로 설명되는 수정, 단순 질의응답, 코드 리뷰, 탐색 — 이런 주제가 와도 스킬이 판정 한 줄로 채팅에 돌려보낸다."
+description: "주제 한 줄 → 다른 세션에서 실행할 프롬프트 파일. 작업 성격을 플래그 없이 라우팅한다 — 생성 불필요(한 문장 diff·질문·한 세션 크기)는 파일 없이 돌려보내고, 정밀(버그·마이그레이션·수치 목표)은 먼저 실패하는 회귀 테스트와 종료 코드로, 창의(UI·도구·새 방법)는 실명 기준점을 넘는 앞서기 항목으로 만든다. 역할별 모델·effort 와 agent teams·Workflow·루프 스위치를 이유와 함께 박는다. 티어(lite/standard/max)로 토큰과 품질을 맞바꾼다."
+when_to_use: "트리거: 메타프롬프트, metaprompt, 프롬프트 만들어줘, 실행용 프롬프트, 루프 프롬프트, 원샷 프롬프트. 쓰지 않음: 한 문장으로 설명되는 수정, 한 세션이 혼자 끝낼 단일 파일 작업, 단순 질의응답, 코드 리뷰, 탐색 — 이런 주제가 와도 스킬이 판정 한 줄로 채팅에 돌려보낸다."
 argument-hint: "<주제> | --check   [--route-only] [--route creative|precise] [--tier lite|standard|max] [--profile product|research|system] [--mode greenfield|worktree] [--yes] [--from <이전 프롬프트>] [--benchmark <기준점>] [--rounds N] [--out <경로>]"
 allowed-tools: ["Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/*)", "Read", "Write", "Edit", "Agent", "AskUserQuestion", "WebSearch", "WebFetch"]
 effort: medium
@@ -25,9 +25,9 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/detect_env.py --skill-dir ${CLAUDE_SKILL_DIR
 
 ## 0. 경로 판정 — 다른 파일을 읽기 전에
 
-위에서부터 처음 걸리는 경로. 두 경로 신호가 팽팽하면 **가벼운 쪽**(skip < precise < creative)으로 닫는다. `--route` 가 오면 판정 대신 그것.
+위에서부터 처음 걸리는 경로. **크기가 신호보다 먼저다** — skip 에 걸리면 creative·precise 신호가 있어도 skip 이다. 두 경로 신호가 팽팽하면 **가벼운 쪽**(skip < precise < creative)으로 닫는다. `--route` 가 오면 판정 대신 그것.
 
-1. **skip — 만들지 않는다.** 산출물이 답변이다(질문·설명·비교 조사·코드 리뷰·탐색·"어떻게") / 바꿀 위치와 내용이 주제에 이미 있어 **diff 를 한 문장으로 쓸 수 있다**(오타·문구·색·설정값 하나·이름 변경·버전 하나·원인이 적힌 한 줄 수정) / 파일 1~2개, 30분 안쪽이 분명하다.
+1. **skip — 만들지 않는다.** 산출물이 답변이다(질문·설명·비교 조사·코드 리뷰·탐색·"어떻게") / 바꿀 위치와 내용이 주제에 이미 있어 **diff 를 한 문장으로 쓸 수 있다**(오타·문구·색·설정값 하나·이름 변경·버전 하나·원인이 적힌 한 줄 수정) / **한 세션이 혼자 끝낼 크기다** — 그린필드이고 산출물이 파일 1~2개(단일 HTML·스크립트·모듈 하나)이며 출시·공개·"○○보다 나은" 신호가 없다. 새 화면이든 명세형이든 같다: 실측 3주제에서 lite 는 채팅 한 번과 같거나, 나아도 채팅에 개선 요청을 한 번 더 한 것과 같은 수준·비용이었다.
 2. **precise — 정답이 정해져 있다.** 원인 불명이거나 여러 곳에 걸친 버그 · 마이그레이션·업그레이드 · 동작 불변 리팩터링 · 수치 목표(지연·처리량·용량·정확도) · 보고된 수치 재현 · 기존 방법끼리 어느 쪽이 나은지 측정 · 테스트·CI 정비. 완료를 커맨드가 판정할 수 있다.
 3. **creative — 새로 설계하고 비교로 품질이 갈린다.** 화면·앱·게임·도구·API·문서 사이트를 새로 만들거나 다시 디자인 · "○○보다 나은 / ○○ 같은" · 새 방법 제안.
 
@@ -39,6 +39,7 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/detect_env.py --skill-dir ${CLAUDE_SKILL_DIR
 
 - `--route-only`: 한 줄만 쓰고 끝낸다. `route=<skip|precise|creative> tier=<t> domain=<d> mode=<m> — <근거 한 줄>`
 - skip (플래그 무관): 두 줄만 쓰고 끝낸다. `route=skip — <근거>. 프롬프트 파일을 만들지 않았다.` / `채팅으로 바로: "<그대로 붙여 쓸 한 문장 지시>"`
+  크기로 skip 이면 지시는 주제 그대로 쓰고 (덧붙여도 결과가 같았다 — 실측) 셋째 줄을 더한다: `더 올리려면: 결과를 본 뒤 "지금 버전을 유지하고 개선버전도 만들어줘" 한 번 — 무인으로 돌리려면 /metaprompt <주제> --route <creative|precise> --tier lite (둘 다 비용·시간 약 2.5배, 실측에서 같은 수준)`
 
 ## 파일 지도 — 필요한 때 하나씩
 
@@ -94,7 +95,7 @@ route <r> · tier <t> · domain <d> · mode <m> · 기준점 <b> · 라운드 <M
   greenfield → mkdir -p <디렉터리> && cd <디렉터리> && git init
   worktree   → git worktree add ../<repo>-metaprompt-<슬러그> -b metaprompt/<슬러그> && cd ../<repo>-metaprompt-<슬러그>
   python3 <skill_dir>/scripts/agents.py <저장 경로>     # 역할 정의 — 반드시 세션 시작 전에
-  claude --effort <메인 effort>                          # teams ON 이면 앞에 CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+  claude --model <메인 model> --effort <메인 effort>     # teams ON 이면 앞에 CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
   첫 입력 → 내부 라운드: 파일 내용 붙여넣기 / /goal ON: 프롬프트의 `/goal` 줄 / /loop ON: /loop 다음 줄에 붙여넣기 / Workflow ON: 첫 줄에 ultracode
 worktree 완료 후 (사람이 판정문을 읽고): git merge --no-ff metaprompt/<슬러그>
 ```
@@ -102,8 +103,8 @@ worktree 완료 후 (사람이 판정문을 읽고): git merge --no-ff metapromp
 ## 규칙
 
 1. **기준점 없이 뱉지 않는다.** creative 는 실명·수치 사실 3개 이상, precise 는 base commit·명세 조항·재현 절차 3개 이상. 확인 못 한 것은 `(출처 미확인)`.
-2. **creative 는 앞서기 항목**, **precise 는 빨강 먼저·테스트 잠금·종료 코드**. 이것이 없으면 평범한 프롬프트다.
-3. **생성자와 채점자를 분리한다.** creative 는 새 컨텍스트 검증자, precise 는 먼저 잠긴 테스트의 종료 코드 + `/goal` 평가자. 검증자의 보고 범위는 체크리스트와 정확성으로 한정한다.
+2. **creative 는 앞서기 항목 + 기본기 항목**, **precise 는 빨강 먼저·테스트 잠금·종료 코드**. 이것이 없으면 평범한 프롬프트다.
+3. **생성자와 채점자를 분리한다.** creative 는 새 컨텍스트 검증자, precise 는 먼저 잠긴 테스트의 종료 코드 + `/goal` 평가자. 검증자의 보고 범위는 체크리스트·정확성·기본기 누락(creative)으로 한정한다.
 4. **모든 역할에 model 과 effort.** 값은 contract 에서만 가져오고 모델 ID 를 박지 않는다 (별칭 해석은 제공자마다 다르다).
 5. **스위치 셋은 값과 이유를 한 줄씩.** 켤 이유가 contract 조건을 전부 채우지 않으면 OFF.
 6. **티어가 깎는 것은 깊이다.** 기준점 · 채점자 분리 · Yes/No 체크리스트 · 정체 감지 · 수용된 제약은 lite 에서도 빼지 않는다.

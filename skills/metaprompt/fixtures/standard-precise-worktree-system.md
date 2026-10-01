@@ -33,13 +33,13 @@ p99 가 목표에 닿아도 오류율이 올라가거나 응답이 달라지면 
 
 ## 실행 예산 (route: precise · tier: standard)
 
-- 메인 세션 effort **medium** — `claude --effort medium` 으로 시작한다 (도중에는 `/effort medium`). xhigh·max 는 이득을 실측하지 않았으면 쓰지 않는다.
+- 메인 세션 effort **medium** · model **opus** — `claude --model opus --effort medium` 로 시작한다 (도중에는 `/effort medium`). 세션 모델이 다르면 시작하지 말고 알린다. xhigh·max 는 이득을 실측하지 않았으면 쓰지 않는다.
 - 라운드 상한 **3**. 팬아웃 서브에이전트는 동시에 최대 **3개**.
 - 역할 — effort 는 에이전트 정의 frontmatter 로만 지정된다 (Agent 호출에는 effort 가 없다). 세션 **시작 전에** `python3 <metaprompt>/scripts/agents.py <이 파일>` 이 아래 표로 `.claude/agents/mp-*.md` 를 만든다. 정의가 로드되지 않았으면 호출에 model 만 지정하고, effort 가 세션값을 상속했다고 판정문에 적는다.
 
   | 역할 | 정의 | model | effort | 맡는 일 |
   |---|---|---|---|---|
-  | 메인 세션 (오케스트레이터·빌더) | — | 세션 모델 | medium | 진단 → 변경 → 재측정 |
+  | 메인 세션 (오케스트레이터·빌더) | — | opus | medium | 진단 → 변경 → 재측정 |
   | 검증자 | mp-verifier | opus | high | 마지막 라운드 1회, 정확성만 |
   | 워커 | mp-worker | sonnet | low | 부하 생성기 · 관측 지표 · 런북 |
 

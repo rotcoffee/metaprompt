@@ -23,7 +23,7 @@ from agents import parse_roles, role_errors  # noqa: E402
 TIERS = ("lite", "standard", "max")
 MODEL_ID = r"\bclaude-(opus|sonnet|haiku|fable|instant)\b|\bclaude-\d+-\d+"  # claude-opus-5-5 · claude-3-5-… (경로의 claude-1000 은 아님)
 MARKERS = r"(creative|precise|lite|standard\+|max|worktree|greenfield)"
-BASE_LITE_BYTES = 35121  # 0.2.0 의 lite·product·greenfield 경로 (SKILL.md 18,236 + product.md 8,169 + template.md 8,716)
+BASE_LITE_BYTES = 36828  # lite·product·greenfield 경로 상한. 0.2.0 은 35,121 B — 0.3.1 에서 기본기·콜드 패스·모델 고정·크기 skip 규칙(bench/lab-2026-09-30.md 실측)을 넣으며 올렸다
 LITE_PATH = ["SKILL.md", "references/contract.md", "references/creative.md", "references/product.md", "references/template.md"]
 
 
@@ -127,6 +127,8 @@ COMMON = [
      "실행 예산 섹션이 없다. 티어가 박혀 있지 않으면 받는 모델이 자기 기준으로 팬아웃한다."),
     ("메인 세션 effort", lambda s, t, m, d, r: _has(s, r"메인 세션 effort\s*\*\*(low|medium|high|xhigh|max)\*\*") and _has(s, r"--effort\s+(low|medium|high)"),
      "메인 세션의 권장 effort(`claude --effort <값>`)가 없다. Opus 5.5 기본은 medium 이고 경로마다 다르다."),
+    ("메인 세션 model", lambda s, t, m, d, r: _has(s, r"claude --model\s+(opus|sonnet|haiku|fable)\b"),
+     "시작 커맨드에 `--model <별칭>` 이 없다. 빼면 계정 기본 모델로 떠서 빌더가 검증자보다 작은 모델이 된다 (실측)."),
     ("역할 표 model·effort", lambda s, t, m, d, r: bool(_roles(s)) and not any(role_errors(x) for x in _roles(s)),
      "실행 예산의 역할 표가 없거나, model·effort 가 빠졌거나 잘못된 행이 있다 (haiku 는 effort '—')."),
     ("역할 표 = contract", lambda s, t, m, d, r: _roles_match_contract(s),
@@ -190,6 +192,10 @@ ROUTE = {
     "creative": [
         ("앞서기 항목", lambda s, t, m, d, r: any(i.startswith("앞서기") and _baseline_token(s) in i for i in _checklist_items(s)),
          "체크리스트에 '앞서기: <기준점>에는 없는 …' 항목이 없다 (기준점 이름 포함). 따라잡기만 하면 복제품이 나온다."),
+        ("기본기 항목", lambda s, t, m, d, r: any(i.startswith("기본기") for i in _checklist_items(s)) and _has(_section(s, "검증"), r"콜드 패스"),
+         "체크리스트에 '기본기: …' 항목이나 검증 절의 콜드 패스가 없다. 빌더는 프롬프트를 닫힌 명세로 읽어 주제가 함의하는 기본기를 뺀다 (실측)."),
+        ("범위 밖 문구 없음", lambda s, t, m, d, r: not re.search(r"범위 밖", s.split("## 검증")[0].replace("범위 밖이 아니다", "")),
+         "목표·예산 절에 '범위 밖' 문장이 있다. 적힌 제외는 그 축의 상한이 된다 (실측: 좁은 폭). 증거 범위만 줄이고 제품 범위는 줄이지 않는다."),
     ],
     "precise": [
         ("빨강 먼저", lambda s, t, m, d, r: _has(s, r"round 0: red") and _has(s, r"exit\s*(≠|!=)\s*0"),
@@ -271,6 +277,10 @@ NEGATIVE = [
     ("lite-creative", "보고 범위 삭제", lambda s: re.sub(r"(?m)^보고 범위는.*\n", "", s), "검증 보고 범위"),
     ("lite-creative", "double-check 문구", lambda s: s.replace("## 종료 조건", "결과는 double-check 해라.\n\n## 종료 조건", 1), "과잉 검증 문구 없음"),
     ("lite-creative", "앞서기 항목 삭제", lambda s: re.sub(r"(?m)^- \[ \] 앞서기.*\n", "", s), "앞서기 항목"),
+    ("lite-creative", "기본기 항목 삭제", lambda s: re.sub(r"(?m)^- \[ \] 기본기.*\n", "", s), "기본기 항목"),
+    ("lite-creative", "콜드 패스 삭제", lambda s: s.replace("콜드 패스", "사전 점검"), "기본기 항목"),
+    ("lite-creative", "범위 밖 문장", lambda s: s.replace("## 기준점 상세", "좁은 폭은 이번 티어 범위 밖이다.\n\n## 기준점 상세", 1), "범위 밖 문구 없음"),
+    ("lite-creative", "시작 커맨드에서 모델 삭제", lambda s: s.replace("claude --model opus --effort", "claude --effort"), "메인 세션 model"),
     ("lite-creative", "경로 없는 헤더", lambda s: s.replace("route=creative ", "", 1), "헤더 메타"),
     ("lite-creative", "자리표시자 잔존", lambda s: s.replace("## 기준점 상세\n", "## 기준점 상세\n\n- {{사실}}\n", 1), "자리표시자 잔존 없음"),
     ("lite-precise", "빨강 먼저 삭제", lambda s: s.replace("round 0: red", "round 0: 테스트"), "빨강 먼저"),
@@ -363,7 +373,7 @@ def self_test():
         ok &= _line(mk in opens, "조건 표식 [[%s]] 존재" % mk)
     for h in TEMPLATE_HEADINGS:
         ok &= _line(h in tpl, "섹션 %s" % h)
-    for key in ("agent teams **", "Workflow **", "루프 **", "메인 세션 effort", "텍스트만 있는 턴", "보고 범위는", "앞서기:", "round 0: red"):
+    for key in ("agent teams **", "Workflow **", "루프 **", "메인 세션 effort", "텍스트만 있는 턴", "보고 범위는", "앞서기:", "기본기:", "콜드 패스", "claude --model", "round 0: red"):
         ok &= _line(key in tpl, "template 에 `%s`" % key)
 
     print("-- lite 토큰 예산 (lite · product · greenfield 경로가 읽는 파일)")

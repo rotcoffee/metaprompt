@@ -10,3 +10,9 @@
 {"id":"r10","topic":"로그인 버튼 색을 #2563eb 로 바꿔줘","expected":"skip","boundary":true,"why":"UI 변경이지만 값 하나를 바꾸는 작은 수정이라 creative 가 아니라 skip."}
 {"id":"r11","topic":"utils.py 의 parse_date 가 None 을 받으면 42번째 줄 strip() 에서 터지는 버그, 가드 하나 추가해줘","expected":"skip","boundary":true,"why":"버그 수정이지만 원인이 알려져 있고 한 줄 diff 라 precise 가 아니라 skip."}
 {"id":"r12","topic":"이 레포의 인증 흐름이 토큰 갱신까지 어떻게 동작하는지 설명해줘","expected":"skip","boundary":false,"why":"코드 이해를 위한 질문·설명이라 프롬프트 파일이 필요 없다."}
+{"id":"r13","topic":"정렬 알고리즘 시각화 애니메이션, 단일 HTML 파일","expected":"skip","boundary":true,"why":"새 화면이지만 파일 하나짜리 그린필드이고 공개·출시·기준점 신호가 없다. 실측에서 채팅이 같은 품질을 절반 비용으로 냈다 (bench/ 실측)."}
+{"id":"r14","topic":"스프레드시트 UI, 단일 HTML 파일","expected":"skip","boundary":true,"why":"단일 파일 그린필드. 실측에서 0.3.0 lite 는 채팅 이하였고, 고친 lite 도 채팅에 개선 요청을 한 번 더 한 것과 같은 수준·비용이었다."}
+{"id":"r15","topic":"파이썬 표준 csv 모듈 없이 CSV 파서 csvparse.py 구현 — csvparse.parse(text) 결과가 list(csv.reader(io.StringIO(text, newline=''))) 와 같고, csv.Error 가 나는 입력에서는 csvparse.Error 를 낸다","expected":"skip","boundary":true,"why":"정답이 정해진 명세형이지만 모듈 하나짜리 그린필드다. 실측에서 채팅이 85초에 차등 퍼즈 100% 를 냈고 precise lite 는 같은 결과에 비용 4.4배였다."}
+{"id":"r16","topic":"마크다운 파일을 HTML 로 바꾸는 파이썬 스크립트 하나 만들어줘","expected":"skip","boundary":false,"why":"스크립트 하나짜리 그린필드, 한 세션이 혼자 끝낸다."}
+{"id":"r17","topic":"다음 달 공개 출시할 제품 랜딩 페이지, 단일 HTML 이지만 Stripe·Linear 홈페이지 옆에 놓아도 밀리지 않게","expected":"creative","boundary":true,"why":"단일 파일이어도 출시·실명 기준점 신호가 있어 비교로 품질이 갈린다 — 크기 규칙의 예외."}
+{"id":"r18","topic":"팀 스프린트 보드 웹앱 — 백엔드 API, DB 스키마, 프론트엔드까지, Linear 보다 빠른 키보드 조작으로","expected":"creative","boundary":false,"why":"여러 구성요소에 걸친 새 제품이라 한 세션 크기를 넘는다."}
