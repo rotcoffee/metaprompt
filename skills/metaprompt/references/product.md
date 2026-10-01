@@ -25,15 +25,16 @@ precise × product (레이아웃 버그·접근성 수정 등) 는 기준점이 
 ## 3. 검증 증거 — 실제로 렌더해서 픽셀을 본다
 
 **필수 도구**: 헤드리스 브라우저 하나 — 환경 JSON 의 `browser`, 또는 `python_packages.playwright` + `playwright_browsers` 에 chromium.
-코드만 읽은 채점(77점)과 렌더를 준 채점(75점)이 달랐고, 렌더에서만 보인 지적이 셋 나왔다 (실측). 프롬프트의 검증 섹션에 넣는다:
+코드만 읽은 채점은 렌더 채점과 달랐고 렌더에서만 보인 지적이 셋 나왔다 (실측). 프롬프트의 검증 섹션에 넣는다:
 
 ````
 검증자는 결과물을 **실제로 렌더링해서 픽셀을 보고** 판정해라. CSS 를 읽고 화면을 상상하지 마라.
+콜드 패스는 **실제 입력**으로 한다: `--remote-debugging-port` 로 띄운 Chrome 에 CDP `Input.dispatchMouseEvent`·`dispatchKeyEvent` (python `websockets` 나 playwright). 핵심 과업을 처음부터 해 보고, 입력·수정·되돌리기·새로고침 뒤 상태·390 폭을 본다. 주입한 `dispatchEvent` 는 실제 입력이 아니다.
 
   google-chrome --headless=new --disable-gpu --no-sandbox --hide-scrollbars \
     --virtual-time-budget=5000 --window-size=1440,987 --screenshot=OUT.png "file:///절대경로"
 
-- `--window-size` 높이에서 약 87px 뺀 값이 실제 뷰포트다 (1440x987 → 1440x900).
+- 뷰포트 크기는 가정하지 말고 스크립트로 `innerWidth`·`innerHeight` 를 읽는다 (Chrome 버전마다 다르다).
 - 다른 상태(다크·좁은 폭·다른 뷰)는 원본 **사본**에 스크립트를 주입해 만든 뒤 캡처한다. 원본은 수정하지 마라.
 - 헤드리스 창은 500px 보다 좁아지지 않는다. 390 폭은 사본을 `<iframe width=390>` 에 넣어 잰다. "스크롤 없이 들어오는가"는 PNG 가 아니라 스크립트로 `innerHeight` 와 요소 위치를 비교한다.
 - 대비비 같은 수치는 스크립트로 계산해 값을 보고한다. 렌더 도구가 없으면 판정문에 명시한다.
@@ -41,7 +42,7 @@ precise × product (레이아웃 버그·접근성 수정 등) 는 기준점이 
 
 | 티어 | 캡처 세트 |
 |---|---|
-| lite | 2장 — 기본 화면 + 체크리스트가 요구하는 상태 1장. 대비는 텍스트 색 3쌍 |
+| lite | 콜드 패스 + 2장 — 기본 화면 + 체크리스트가 요구하는 상태 1장. 대비는 텍스트 색 3쌍 |
 | standard | 4장 — 라이트/다크, 대체 뷰, 좁은 폭. 대비는 전체 텍스트 색 |
 | max | 4장 + 2x DPI + hover·포커스·빈 상태. 대비는 색 × 합성 배경 전수 |
 

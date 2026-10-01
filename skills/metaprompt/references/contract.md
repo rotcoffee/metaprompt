@@ -29,7 +29,7 @@ Agent 도구에는 effort 파라미터가 없다. effort 는 에이전트 정의
 
 | 역할 | 정의 | model | effort | 언제 |
 |---|---|---|---|---|
-| 메인 세션 (오케스트레이터·빌더) | — | 세션 모델 | precise medium · creative lite medium, standard+ high | 항상. `claude --effort <값>` |
+| 메인 세션 (오케스트레이터·빌더) | — | opus | precise medium · creative lite medium, standard+ high | 항상. `claude --model opus --effort <값>` — 빼면 계정 기본 모델로 뜬다 (실측) |
 | 검증자 | mp-verifier | opus | high | creative 매 라운드 · precise 마지막 1회 |
 | 심사자 | mp-judge | opus | medium | creative standard+ 블라인드 비교 |
 | 워커 | mp-worker | sonnet | low | K ≥ 1 인 팬아웃·측정 |

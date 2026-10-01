@@ -19,13 +19,13 @@
 
 ## 실행 예산 (route: precise · tier: lite)
 
-- 메인 세션 effort **medium** — `claude --effort medium` 로 시작한다 (도중에는 `/effort medium`). xhigh·max 는 이득을 실측하지 않았으면 쓰지 않는다.
+- 메인 세션 effort **medium** · model **opus** — `claude --model opus --effort medium` 로 시작한다 (도중에는 `/effort medium`). 세션 모델이 다르면 시작하지 말고 알린다. xhigh·max 는 이득을 실측하지 않았으면 쓰지 않는다.
 - 라운드 상한 **2**. 팬아웃 없음 — 빌더는 메인 세션 하나다. 혼자 끝낼 수 있는 일을 위임하지 마라.
 - 역할 — effort 는 에이전트 정의 frontmatter 로만 지정된다 (Agent 호출에는 effort 가 없다). 세션 **시작 전에** `python3 <metaprompt>/scripts/agents.py <이 파일>` 이 아래 표로 `.claude/agents/mp-*.md` 를 만든다. 정의가 로드되지 않았으면 호출에 model 만 지정하고, effort 가 세션값을 상속했다고 판정문에 적는다.
 
   | 역할 | 정의 | model | effort | 맡는 일 |
   |---|---|---|---|---|
-  | 메인 세션 (오케스트레이터·빌더) | — | 세션 모델 | medium | 테스트 작성·잠금, 파서 구현, 라운드 커밋 |
+  | 메인 세션 (오케스트레이터·빌더) | — | opus | medium | 테스트 작성·잠금, 파서 구현, 라운드 커밋 |
   | 검증자 | mp-verifier | opus | high | 마지막 라운드 1회, 새 컨텍스트로 정확성만 |
 
 - 기능 스위치:
