@@ -23,7 +23,7 @@ from agents import parse_roles, role_errors  # noqa: E402
 TIERS = ("lite", "standard", "max")
 MODEL_ID = r"\bclaude-(opus|sonnet|haiku|fable|instant)\b|\bclaude-\d+-\d+"  # claude-opus-5-5 · claude-3-5-… (경로의 claude-1000 은 아님)
 MARKERS = r"(creative|precise|lite|standard\+|max|worktree|greenfield)"
-BASE_LITE_BYTES = 36828  # lite·product·greenfield 경로 상한. 0.2.0 은 35,121 B — 0.3.1 에서 기본기·콜드 패스·모델 고정·크기 skip 규칙(bench/lab-2026-09-30.md 실측)을 넣으며 올렸다
+BASE_LITE_BYTES = 37209  # lite·product·greenfield 경로 상한. 0.2.0 은 35,121 B — 0.3.1 에서 기본기·콜드 패스·모델 고정·크기 skip 규칙(bench/lab-2026-09-30.md 실측)을 넣으며 올렸다
 LITE_PATH = ["SKILL.md", "references/contract.md", "references/creative.md", "references/product.md", "references/template.md"]
 
 
@@ -152,6 +152,7 @@ COMMON = [
     ("사전조건 섹션", lambda s, t, m, d, r: re.search(r"^\|", _section(s, "사전조건"), re.M) is not None,
      "사전조건(검증 도구) 섹션이나 그 표가 없다."),
     ("보고 30줄 규약", lambda s, t, m, d, r: _has(s, r"30줄"), "서브에이전트 보고 30줄 제한이 없다."),
+    ("검증자 포그라운드 호출", lambda s, t, m, d, r: _has(s, r"포그라운드"), "검증자·심사자를 포그라운드로 호출하라는 문장이 없다. -p 에서는 턴이 끝나면 백그라운드 결과를 받지 못한다 (실측)."),
     ("판정문 파일 규약", lambda s, t, m, d, r: _has(s, r"verdicts/round"), "판정문 verdicts/round-N.md 규약이 없다."),
     ("순차 섹션", lambda s, t, m, d, r: _has(s, r"순차로 진행할 것"), "순차 통이 없다."),
     ("순차 이유 명시", lambda s, t, m, d, r: "이유" in _section(s, "순차로 진행할 것"),
@@ -277,6 +278,7 @@ NEGATIVE = [
     ("lite-creative", "보고 범위 삭제", lambda s: re.sub(r"(?m)^보고 범위는.*\n", "", s), "검증 보고 범위"),
     ("lite-creative", "double-check 문구", lambda s: s.replace("## 종료 조건", "결과는 double-check 해라.\n\n## 종료 조건", 1), "과잉 검증 문구 없음"),
     ("lite-creative", "앞서기 항목 삭제", lambda s: re.sub(r"(?m)^- \[ \] 앞서기.*\n", "", s), "앞서기 항목"),
+    ("lite-creative", "포그라운드 문장 삭제", lambda s: s.replace("포그라운드로", "따로"), "검증자 포그라운드 호출"),
     ("lite-creative", "기본기 항목 삭제", lambda s: re.sub(r"(?m)^- \[ \] 기본기.*\n", "", s), "기본기 항목"),
     ("lite-creative", "콜드 패스 삭제", lambda s: s.replace("콜드 패스", "사전 점검"), "기본기 항목"),
     ("lite-creative", "범위 밖 문장", lambda s: s.replace("## 기준점 상세", "좁은 폭은 이번 티어 범위 밖이다.\n\n## 기준점 상세", 1), "범위 밖 문구 없음"),
